@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-canvas-pan",
+	"name": "canvas-keyboard-pan",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Pan around your canvas using the keyboard",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -28,8 +28,5 @@
 		"typescript": "5.4.5",
 		"typescript-eslint": "^7.7.0"
 	},
-	"dependencies": {
-		"signal-polyfill": "^0.1.0",
-		"signal-utils": "^0.14.0"
-	}
+	"dependencies": {}
 }

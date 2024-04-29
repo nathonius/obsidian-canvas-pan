@@ -55,7 +55,7 @@ export class CanvasKeyboardPanSettingsTab extends PluginSettingTab {
 						keyboardViewContainer.appendChild(this.renderKeyboardView(this.keys, this.activeDirection));
 					}).bind(this);
 					this.keySettingsListener = listener;
-					this.plugin.registerDomEvent(document, "keypress", listener);
+					this.plugin.registerDomEvent(window, "keypress", listener);
 				});
 			});
 
@@ -94,7 +94,7 @@ export class CanvasKeyboardPanSettingsTab extends PluginSettingTab {
 		};
 		await this.plugin.saveData(this.plugin.settings);
 		if (this.keySettingsListener) {
-			document.removeEventListener("keypress", this.keySettingsListener);
+			window.removeEventListener("keypress", this.keySettingsListener);
 			this.keySettingsListener = null;
 		}
 		this.display();
