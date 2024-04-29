@@ -4,6 +4,13 @@ import { PluginSettingTab, Setting, setIcon } from "obsidian";
 
 import type { App } from "obsidian";
 
+const KeyLabelOverrides: Record<string, string> = {
+	ArrowUp: "Up",
+	ArrowLeft: "Left",
+	ArrowDown: "Down",
+	ArrowRight: "Right",
+};
+
 export class CanvasKeyboardPanSettingsTab extends PluginSettingTab {
 	keySettingsListener: ((evt: KeyboardEvent) => void) | null = null;
 	activeDirection: Direction | null = null;
@@ -23,6 +30,15 @@ export class CanvasKeyboardPanSettingsTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName("Controls")
 			.setDesc("Which set of keys pan the canvas.")
+			.addExtraButton((button) => {
+				button.setIcon("rotate-ccw");
+				button.setTooltip("Restore default");
+				button.onClick(async () => {
+					this.plugin.settings.keys = { ...DEFAULT_SETTINGS.keys };
+					await this.plugin.saveData(this.plugin.settings);
+					this.display();
+				});
+			})
 			.addButton((button) => {
 				button.setButtonText("Update controls");
 				button.onClick(() => {
@@ -55,7 +71,7 @@ export class CanvasKeyboardPanSettingsTab extends PluginSettingTab {
 						keyboardViewContainer.appendChild(this.renderKeyboardView(this.keys, this.activeDirection));
 					}).bind(this);
 					this.keySettingsListener = listener;
-					this.plugin.registerDomEvent(document, "keypress", listener);
+					this.plugin.registerDomEvent(document, "keydown", listener);
 				});
 			});
 
@@ -94,7 +110,7 @@ export class CanvasKeyboardPanSettingsTab extends PluginSettingTab {
 		};
 		await this.plugin.saveData(this.plugin.settings);
 		if (this.keySettingsListener) {
-			document.removeEventListener("keypress", this.keySettingsListener);
+			document.removeEventListener("keydown", this.keySettingsListener);
 			this.keySettingsListener = null;
 		}
 		this.display();
@@ -122,19 +138,19 @@ export class CanvasKeyboardPanSettingsTab extends PluginSettingTab {
 		const labels: Record<Direction, HTMLDivElement> = {
 			[Direction.North]: container.createDiv({
 				cls: ["pan-kb-label", "pan-kb-label-north"],
-				text: keys[Direction.North] ?? "?",
+				text: this.getKeyLabel(keys, Direction.North),
 			}),
 			[Direction.West]: container.createDiv({
 				cls: ["pan-kb-label", "pan-kb-label-west"],
-				text: keys[Direction.West] ?? "?",
+				text: this.getKeyLabel(keys, Direction.West),
 			}),
 			[Direction.South]: container.createDiv({
 				cls: ["pan-kb-label", "pan-kb-label-south"],
-				text: keys[Direction.South] ?? "?",
+				text: this.getKeyLabel(keys, Direction.South),
 			}),
 			[Direction.East]: container.createDiv({
 				cls: ["pan-kb-label", "pan-kb-label-east"],
-				text: keys[Direction.East] ?? "?",
+				text: this.getKeyLabel(keys, Direction.East),
 			}),
 		};
 
@@ -145,5 +161,10 @@ export class CanvasKeyboardPanSettingsTab extends PluginSettingTab {
 		}
 
 		return container;
+	}
+
+	public getKeyLabel(keys: Partial<CanvasKeyboardPanSettings["keys"]>, direction: Direction): string {
+		const key = keys[direction] ?? "?";
+		return KeyLabelOverrides[key] ?? key;
 	}
 }
