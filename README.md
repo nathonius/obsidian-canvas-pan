@@ -2,6 +2,8 @@
 
 A (somewhat experimental) plugin to add an option to pan the Obsidian canvas using the keyboard.
 
+![VideoExample](doc/CanvasPan.gif)
+
 ## Configuration
 
 Default is WASD, and can be configured in plugin settings. Overall maximum pan speed can also be tweaked.
