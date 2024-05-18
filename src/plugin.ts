@@ -49,19 +49,26 @@ export class CanvasKeyboardPan extends Plugin {
 		this.addSettingTab(new CanvasKeyboardPanSettingsTab(this.app, this));
 
 		this.registerDomEvent(this.app.workspace.containerEl, "keydown", (evt) => {
+			if (this.app.workspace.activeEditor) {
+				return;
+			}
 			if (Object.values(this.settings.keys).includes(evt.key)) {
 				switch (evt.key) {
 					case this.settings.keys[Direction.North]:
 						this.NorthKeyDown = true;
+						this.SouthKeyDown = false;
 						break;
 					case this.settings.keys[Direction.West]:
 						this.WestKeyDown = true;
+						this.EastKeyDown = false;
 						break;
 					case this.settings.keys[Direction.South]:
 						this.SouthKeyDown = true;
+						this.NorthKeyDown = false;
 						break;
 					case this.settings.keys[Direction.East]:
 						this.EastKeyDown = true;
+						this.WestKeyDown = false;
 						break;
 				}
 				this.startPan();
@@ -88,8 +95,13 @@ export class CanvasKeyboardPan extends Plugin {
 			}
 		});
 
+		this.registerEvent(this.app.workspace.on("active-leaf-change", () => {}));
+
 		this.registerEvent(
 			this.app.workspace.on("layout-change", () => {
+				// Reset state just in case
+				this.stopPan(true);
+
 				if (this.getActiveCanvas()) {
 					this.active = true;
 				} else {
@@ -97,6 +109,17 @@ export class CanvasKeyboardPan extends Plugin {
 				}
 			}),
 		);
+
+		// Events that should also stop any active panning
+		const events = ["active-leaf-change", "file-open", "file-menu", "files-menu"] as const;
+		for (const event of events) {
+			this.registerEvent(
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Some bad types here, need to use any :(
+				this.app.workspace.on(event as any, () => {
+					this.stopPan(true);
+				}),
+			);
+		}
 	}
 
 	public startPan(): void {
@@ -105,10 +128,16 @@ export class CanvasKeyboardPan extends Plugin {
 		}
 	}
 
-	public stopPan(): void {
-		if (!this.panning) {
+	public stopPan(force = false): void {
+		if (!this.panning || force) {
 			window.clearInterval(this.panInterval);
 			this.panInterval = undefined;
+		}
+		if (force) {
+			this.NorthKeyDown = false;
+			this.WestKeyDown = false;
+			this.SouthKeyDown = false;
+			this.EastKeyDown = false;
 		}
 	}
 
